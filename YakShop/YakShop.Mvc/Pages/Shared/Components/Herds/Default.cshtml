@@ -1,0 +1,54 @@
+﻿@using YakShop.Common.Models
+@model List<Herd>
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+<div>
+    <h3>Herds</h3>
+</div>
+<table class="table table-responsive table-bordered panel-primary">
+    <thead>
+    <th>Name</th>
+    <th>Details</th>
+    @*<th></th>*@
+    </thead>
+    <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(model => item.Name)</td>
+                    <td>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h5>ID:</h5>
+                            </div>
+                            <div class="col-md-9">
+                                @Html.DisplayFor(model => item.Id)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h5>Age:</h5>
+                            </div>
+                            <div class="col-md-9">
+                                @Html.DisplayFor(model => item.Age)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h5>Last Shaved:</h5>
+                            </div>
+                            <div class="col-md-9">
+                                @Html.DisplayFor(model => item.AgeLastShaved)
+                            </div>
+                        </div>
+                    </td>
+                    @*<td>
+                            <a asp-action="EditMeeting" asp-route-id="@item.GroupMeetingId">Edit</a>|
+                            <a asp-action="DeleteMeeting" asp-route-id="@item.GroupMeetingId">Delete</a>
+                        </td>*@
+                </tr>
+
+            }
+    </tbody>
+</table>

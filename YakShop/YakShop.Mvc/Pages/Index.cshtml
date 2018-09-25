@@ -1,0 +1,296 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+@Html.AntiForgeryToken()
+<div class="row" style="margin-top:20px;">
+    <div class="col-md-4" style="margin-top:20px;">
+        <form class="form-inline">
+            <div class="form-group">
+                <label for="elapsed">Elapsed Days:</label>
+                <input type="text" class="form-control" id="txtElapsedDays" value="0">
+            </div>
+            <button type="button" class="btn btn-info" id="btnElapsed">Set</button>
+        </form>
+    </div>
+    <div class="col-md-4">
+        <h3 id="lblElapsedDays">Elapsed Days: @Model.ElapsedDays</h3>
+        <input name="ElapsedDays" type="hidden" id="txtElapsedData" value="@Model.ElapsedDays" />
+    </div>
+    <div class="col-md-2" style="margin-top:20px;">
+        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#resetContentModal">Reset Content</button>
+    </div>
+    <div class="col-md-2 pull-right" style="margin-top:20px;">
+        <button type="button" class="btn btn-success" id="buyNowModal">Buy Now</button>
+    </div>
+    <input name="clientID" type="hidden" id="txtClientId" value="@ViewData["ClientID"].ToString()" />
+</div>
+<div class="row">
+    <div class="col-md-6" style="padding:20px;">
+        <div class="row" id="stockViewId">
+            @await Component.InvokeAsync("StockSales", new { isStock = true })
+        </div>
+        <div class="row" id="herdViewId">
+            @await Component.InvokeAsync("Herds")
+        </div>
+       
+    </div>
+    <div class="col-md-6" style="padding:20px;">
+        <div class="row" id="salesViewId">
+            @await Component.InvokeAsync("StockSales", new { isStock = false })
+        </div>
+        <div class="row" id="ordersViewId">
+            @await Component.InvokeAsync("Orders")
+        </div>
+    </div>
+</div>
+
+<div id="resetContentModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Reset Content</h4>
+            </div>
+            <div class="modal-body">
+                <textarea rows="10" cols="78" id="idResetContentTxt">@ViewData["DefaultContent"].ToString()</textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-dismiss="modal" id="btnResetContent">Reset</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script src="~/lib/signalr/dist/browser/signalr.js"></script>
+
+<div id="modal-buyNow"></div>
+
+<div class="modal fade" id="orderConfirm" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addContactLabel">Order Status</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="txtHead" style="margin-bottom:30px;"></div>
+                
+                <div id="txtMsg"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+<script type="text/javascript" language="JavaScript">
+    var connection = new signalR.HubConnectionBuilder().withUrl("/yakShopHub").build();
+
+    connection.on("ShopUpdate", function (clientId, elapsedDays) {
+        var id = $("#txtClientId").val();
+        if (id != clientId) {
+            var data = "Elapsed Days: " + elapsedDays;
+            $("#lblElapsedDays").html(data);
+            $("#txtElapsedData").val(elapsedDays);
+
+            refreshContent(clientId);
+        }
+    });
+
+    connection.start().catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    function notifyClients() {
+        var clientId = $("#txtClientId").val();
+        var elapsedDays = $("#txtElapsedData").val();
+        connection.invoke("ShopUpdate", clientId, elapsedDays).catch(function (err) {
+            return console.error(err.toString());
+        });
+    };
+
+    function refreshContent(clientId) {
+        $.ajax({
+            method: 'GET',
+            url: '@Url.Action("HerdsView", "Component")'
+        }).done(function (data, statusText, xhdr) {
+            $("#herdViewId").html(data);
+        }).fail(function (xhdr, statusText, errorText) {
+            $("#result").text(JSON.stringify(xhdr));
+        });
+
+            $.ajax({
+            method: 'GET',
+            url: '@Url.Action("StockView", "Component")'
+        }).done(function (data, statusText, xhdr) {
+            $("#stockViewId").html(data);
+        }).fail(function (xhdr, statusText, errorText) {
+            $("#result").text(JSON.stringify(xhdr));
+            });
+
+            $.ajax({
+            method: 'GET',
+            url: '@Url.Action("SalesView", "Component")'
+        }).done(function (data, statusText, xhdr) {
+            $("#salesViewId").html(data);
+        }).fail(function (xhdr, statusText, errorText) {
+            $("#result").text(JSON.stringify(xhdr));
+            });
+
+            $.ajax({
+            method: 'GET',
+            url: '@Url.Action("OrdersView", "Component")'
+        }).done(function (data, statusText, xhdr) {
+            $("#ordersViewId").html(data);
+        }).fail(function (xhdr, statusText, errorText) {
+            $("#result").text(JSON.stringify(xhdr));
+        });
+
+        var id = $("#txtClientId").val();
+        if (id == clientId) {
+            notifyClients();
+        }
+    };
+
+    $(document).ready(function () {
+        var buyNowElement = $('#modal-buyNow');
+        var clientId = $("#txtClientId").val();
+
+        $(document).bind('keypress', function (e) {
+            if (e.keyCode == 13) {
+                $('#btnElapsed').trigger('click');
+            }
+        });
+
+        $("#btnElapsed").click(function () {
+            var options = {};
+            options.url = "/Index?handler=Elapsed";
+            options.type = "POST";
+
+            var obj = {};
+            obj.Days = $("#txtElapsedDays").val();
+
+            options.data = JSON.stringify(obj);
+            options.contentType = "application/json";
+            options.dataType = "json";
+
+            options.beforeSend = function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+            };
+            options.success = function (msg) {
+                var data = "Elapsed Days: " + msg;
+                $("#lblElapsedDays").html(data);
+                $("#txtElapsedData").val(msg);
+                refreshContent(clientId);
+            };
+            options.fail = function () {
+            };
+            options.complete = function (xhdr, statusText) {
+            };
+            $.ajax(options);
+        });
+
+        $("#btnResetContent").click(function () {
+            var options = {};
+            options.url = "/Index?handler=ResetContent";
+            options.type = "POST";
+
+            var obj = $("#idResetContentTxt").val();
+            var jsonData = JSON.parse(obj);
+                options.data = JSON.stringify(jsonData);
+            options.contentType = "application/json";
+            options.dataType = "json";
+
+            options.beforeSend = function (xhr) {
+                xhr.setRequestHeader("XSRF-TOKEN",
+                    $('input:hidden[name="__RequestVerificationToken"]').val());
+                };
+            options.success = function (msg) {
+
+                refreshContent(clientId);
+            };
+            options.fail = function () {
+            };
+            options.complete = function (xhdr, statusText) {
+                refreshContent(clientId);
+            };
+            $.ajax(options);
+        });
+
+        $("#buyNowModal").click(function () {
+            $.ajax({
+                method: 'GET',
+                url: '@Url.Action("CartView", "Component")'
+            }).done(function (data, statusText, xhdr) {
+                buyNowElement.html(data);
+                buyNowElement.find('.modal').modal('show');
+            });
+        });
+
+        buyNowElement.on('click', '[data-cart="modal"]', function (event) {
+            event.preventDefault();
+
+            var obj = {};
+            obj.Customer = $("#txtName").val();
+            obj.Milk = $("#txtMilk").val();
+            obj.Skin = $("#txtSkin").val();
+            obj.Days = $("#txtElapsedData").val();
+
+            $.ajax({
+                method: 'POST',
+                url: '@Url.Action("CartViewValidate", "Component")',
+                dataType: 'html',
+                contentType: 'application/json',
+                data: JSON.stringify(obj)
+            }).done(function (data, statusText, xhdr) {
+                        var newBody = $('.modal-body', data);
+                buyNowElement.find('.modal-body').replaceWith(newBody);
+
+                var isValid = newBody.find('[name="IsValid"]').val() == 'True';
+                if (isValid) {
+                    obj = {};
+                    obj.Customer = $("#txtName").val();
+                    obj.Milk = $("#txtMilk").val();
+                    obj.Skin = $("#txtSkin").val();
+                    obj.Days = $("#txtElapsedData").val();
+
+                    $.ajax({
+                        method: 'POST',
+                        url: '/Index?handler=BuyNow',
+                        data: JSON.stringify(obj),
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader("XSRF-TOKEN",
+                                $('input:hidden[name="__RequestVerificationToken"]').val());
+                        },
+                        contentType:'application/json',
+                        dataType:'json'
+                    }).done(function (data, statusText, xhdr) {
+                        buyNowElement.find('.modal').modal('hide');
+                        refreshContent(clientId);
+                        $("#txtHead").html("Hello " + data["customer"].toString());
+                        $("#txtMsg").html(data["message"].toString());
+                        if (xhdr.status != 201 && xhdr.status != 206) {
+                            $("txtMsg").replaceWith("Order could not be completed...");
+                        }
+                        $("#orderConfirm").modal("show");
+                    });
+                }
+            });
+        });
+      
+    });
+   
+</script>
+}
+

@@ -1,0 +1,42 @@
+﻿@using YakShop.Mvc.Pages.Components.Cart
+@model CartModel
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+<div class="modal fade" id="buyNowModal" tabindex="-1" role="dialog" aria-labelledby="addCartLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addContactLabel">Buy Now</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form asp-action="BuyNow">
+                    <input name="IsValid" type="hidden" value="@ViewData.ModelState.IsValid.ToString()" />
+                    <div class="form-group">
+                        <label asp-for="Customer"></label>
+                        <input asp-for="Customer" class="form-control" id="txtName"/>
+                        <span asp-validation-for="Customer" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Milk"></label>
+                        <input asp-for="Milk" class="form-control" id="txtMilk" asp-format="{0:N2}"/>
+                        <span asp-validation-for="Milk" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Skin"></label>
+                        <input asp-for="Skin" class="form-control" id="txtSkin" type="number"/>
+                        <span asp-validation-for="Skin" class="text-danger"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-cart="modal">Buy</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
