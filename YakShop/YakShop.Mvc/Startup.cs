@@ -39,7 +39,7 @@ namespace YakShop.Mvc
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.AddDataProtection()
-                .SetApplicationName("YakShopMvc")
+                .SetApplicationName("YakShop.Mvc")
                 .UseCryptographicAlgorithms(
                 new AuthenticatedEncryptorConfiguration()
                 {

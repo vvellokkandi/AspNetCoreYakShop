@@ -1,0 +1,18 @@
+version: '3.4'
+
+services:
+  yakshop.mvc:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Container
+    ports:
+      - "80"
+  yakshop.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Container
+    ports:
+      - "80"
+networks:
+  default:
+    external:
+      name: nat
+
