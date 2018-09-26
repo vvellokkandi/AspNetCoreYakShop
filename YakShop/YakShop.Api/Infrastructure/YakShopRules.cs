@@ -48,8 +48,8 @@ namespace YakShop.Api.Infrastructure
             var totalOrders = context.Orders.GroupBy(i => 1)
                         .Select(g => new CartItem
                         {
-                            Milk = g.Sum(o => o.Milk),
-                            Skin = g.Sum(o => o.Skin)
+                            Milk = g.Sum(o => o.FullfilledMilk),
+                            Skin = g.Sum(o => o.FullfilledSkin)
                         }).FirstOrDefault();
 
             //If we already have orders subtract fullfilled orders from total stock

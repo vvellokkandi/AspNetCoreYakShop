@@ -118,7 +118,7 @@ namespace YakShop.Mvc.Pages
                 {
                     Customer = postData.Customer,
                     Skin = resultData.Skin.HasValue ? resultData.Skin.Value : 0,
-                    Milk = resultData.Skin.HasValue ? resultData.Milk.Value : 0,
+                    Milk = resultData.Milk.HasValue ? resultData.Milk.Value : 0,
                 };
                 if (response.StatusCode == System.Net.HttpStatusCode.Created)
                     cartModel.Message = $"Order for Milk: { cartModel.Milk} and Skin: {cartModel.Skin} placed successfully...";
