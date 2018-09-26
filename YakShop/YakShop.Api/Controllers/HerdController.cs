@@ -76,20 +76,12 @@ namespace YakShop.Api.Controllers
         /// </remarks>
         /// <returns>Returns a view of all herds after specified number of days </returns>
         /// <response code="200">OK</response>
-        /// <response code="204">No Content</response>
-        /// <response code="500">In case of any server error</response> 
+        /// <response code="400">BadRequest in case of any error</response> 
         [HttpGet("{days}", Name = "GetHerd")]
         public IActionResult Get(int days)
         {
             var herdList = _context.GetHerdView(days);
-            if (herdList.Herd.Count() == 0)
-            {
-                return NoContent();
-            }
-            else
-            {
-                return Ok(herdList);
-            }
+            return Ok(herdList);
         }
 
     }

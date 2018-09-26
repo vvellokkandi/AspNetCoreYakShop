@@ -63,7 +63,7 @@ namespace YakShop.Api.Controllers
             }
             catch
             {
-                return StatusCode(500, "Internal server error");
+                return BadRequest(ModelState);
             }
         }
 
@@ -72,10 +72,11 @@ namespace YakShop.Api.Controllers
         {
             var settings = _context.Settings.FirstOrDefault();
 
-            if (settings == null)
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent);
-            else
-                return Ok(settings.ElapsedDays);
+            var elapsedDays = 0;
+            if (settings != null)
+                elapsedDays = settings.ElapsedDays;
+
+            return Ok(elapsedDays);
         }
 
         [HttpPost("{days}", Name = "SetElapsedDays")]

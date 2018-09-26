@@ -21,20 +21,15 @@ namespace YakShop.Mvc.Pages
         [BindProperty]
         public int ElapsedDays { get; set; }
 
- 
-        [BindProperty]
-        public StockData StockData { get; set; }
-
-        [BindProperty]
-        public CartData CartData { get; set; }
-
         readonly IOptions<ApiSettings> _apiSettings;
-        public IndexModel(IOptions<ApiSettings> apiSettings)
+        readonly IHttpClientFactory _clientFactory;
+
+        public IndexModel(IOptions<ApiSettings> apiSettings, IHttpClientFactory clientFactory)
         {
             _apiSettings = apiSettings;
-            StockData = new StockData();
-            CartData = new CartData();
+            _clientFactory = clientFactory;
         }
+
         public async Task<IActionResult> OnGet()
         {
             ViewData["APIPath"] = _apiSettings.Value.Url;
@@ -42,23 +37,19 @@ namespace YakShop.Mvc.Pages
             SetDefaultLoadContent();
 
             //Get elapsed days
-            var client = GetHttpClient();
+            var client = _clientFactory.CreateClient("YakShopAPI");
+
             var path = "Yak-Shop/Load/";
-            var data = await client.GetStringAsync(path);
-
-            if (!string.IsNullOrEmpty(data))
-                ElapsedDays = Convert.ToInt32(data);
-
-
-            //Get Stocks
-            path = "Yak-Shop/Stock/" + ElapsedDays;
             var response = await client.GetAsync(path);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                StockData = JsonConvert.DeserializeObject<StockData>(await response.Content.ReadAsStringAsync());
+                var data = response.Content.ReadAsStringAsync();
+                ElapsedDays = Convert.ToInt32(data.Result);
             }
+
             return Page();
+
         }
 
         public async Task<IActionResult> OnGetHerdView()
@@ -72,10 +63,11 @@ namespace YakShop.Mvc.Pages
         {
             ElapsedDays = postData.Days;
 
-            var client = GetHttpClient();
+            var client = _clientFactory.CreateClient("YakShopAPI");
+
             var path = "Yak-Shop/Load/" + postData.Days;
 
-            var response = await client.PostAsync(path,null);
+            var response = await client.PostBasicAsync(path, null);
             if (response.StatusCode == System.Net.HttpStatusCode.ResetContent)
             {
                 return new JsonResult(ElapsedDays);
@@ -87,11 +79,10 @@ namespace YakShop.Mvc.Pages
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnPostResetContent([FromBody] HerdList postData)
         {
-            var client = GetHttpClient();
+            var client = _clientFactory.CreateClient("YakShopAPI");
             var path = "Yak-Shop/Load/";
 
-            var data = JsonConvert.SerializeObject(postData);
-            var response = await client.PostAsync(path, new StringContent(data, Encoding.UTF8, "application/json"));
+            var response = await client.PostBasicAsync(path, postData);
 
             if (response.StatusCode == System.Net.HttpStatusCode.ResetContent)
             {
@@ -104,24 +95,27 @@ namespace YakShop.Mvc.Pages
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnPostBuyNow([FromBody] CartModel postData)
         {
-            var client = GetHttpClient();
+            var client = _clientFactory.CreateClient("YakShopAPI");
             var path = "Yak-Shop/Order/" + postData.Days;
 
-            var cartItem = new CartData() {
+            var cartItem = new CartData()
+            {
                 Customer = postData.Customer,
-                Order = new CartItem() {
+                Order = new CartItem()
+                {
                     Milk = postData.Milk,
                     Skin = postData.Skin,
                 }
             };
-            var data = JsonConvert.SerializeObject(cartItem);
-            var response = await client.PostAsync(path, new StringContent(data, Encoding.UTF8, "application/json"));
+
+            var response = await client.PostBasicAsync(path, cartItem);
 
             if (response.StatusCode == System.Net.HttpStatusCode.Created ||
                 response.StatusCode == System.Net.HttpStatusCode.PartialContent)
             {
                 var resultData = JsonConvert.DeserializeObject<CartItem>(await response.Content.ReadAsStringAsync());
-                var cartModel = new CartModel() {
+                var cartModel = new CartModel()
+                {
                     Customer = postData.Customer,
                     Skin = resultData.Skin.HasValue ? resultData.Skin.Value : 0,
                     Milk = resultData.Skin.HasValue ? resultData.Milk.Value : 0,
@@ -135,18 +129,6 @@ namespace YakShop.Mvc.Pages
             }
             else
                 return StatusCode((int)response.StatusCode, new CartModel() { Customer = postData.Customer });
-        }
-
-        private HttpClient GetHttpClient()
-        {
-
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(_apiSettings.Value.Url);
-
-
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return client;
         }
 
         private void SetDefaultLoadContent()

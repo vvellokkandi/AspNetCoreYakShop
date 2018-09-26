@@ -35,7 +35,6 @@ namespace YakShop.Api.Controllers
         /// </remarks>
         /// <returns>Returns a view of stock after specified number of days </returns>
         /// <response code="200">OK</response>
-        /// <response code="204">No Content</response>
         /// <response code="500">In case of any server error</response> 
         [HttpGet("{days}", Name = "GetStock")]
         public IActionResult Get(int days)

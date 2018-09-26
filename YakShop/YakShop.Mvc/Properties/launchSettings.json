@@ -1,9 +1,13 @@
-﻿{
+{
   "iisSettings": {
-    "windowsAuthentication": false, 
-    "anonymousAuthentication": true, 
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iis": {
+      "applicationUrl": "http://localhost/YakShop.Mvc",
+      "sslPort": 0
+    },
     "iisExpress": {
-      "applicationUrl": "http://localhost:55068",
+      "applicationUrl": "http://localhost:8086",
       "sslPort": 0
     }
   },
@@ -18,9 +22,17 @@
     "YakShop.Mvc": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:8086"
+    },
+    "Docker": {
+      "commandName": "IIS",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Container"
       }
     }
   }

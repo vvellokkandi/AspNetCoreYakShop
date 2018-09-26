@@ -42,11 +42,33 @@ namespace YakShop.Api
             //XmlSerializer ser = new XmlSerializer(typeof(HerdList));
             //ser.Serialize(writer, items, ns);  
 
-            CreateWebHostBuilder(args).Build().Run();
+            //CreateWebHostBuilder(args);
+
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("hosting.json", optional: true)
+                .Build();
+
+            var host = WebHost.CreateDefaultBuilder(args)
+                .UseKestrel()
+                .UseConfiguration(config)
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseIISIntegration()
+                .UseStartup<Startup>()
+                .Build();
+
+            host.Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+        //public static IWebHostBuilder CreateWebHostBuilder(string[] args) )
+        //{
+
+        //    WebHost.CreateDefaultBuilder(args)
+        //        .UseStartup<Startup>()
+        //        .UseKestrel(options =>
+        //        {
+        //    // Set properties and call methods on options
+        //        }).;
+        //}
     }
 }

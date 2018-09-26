@@ -15,15 +15,17 @@ namespace YakShop.Mvc.Pages.Components.Orders
     public class OrdersViewComponent : ViewComponent
     {
         readonly IOptions<ApiSettings> _apiSettings;
-        public OrdersViewComponent(IOptions<ApiSettings> apiSettings)
+        readonly IHttpClientFactory _clientFactory;
+
+        public OrdersViewComponent(IOptions<ApiSettings> apiSettings, IHttpClientFactory clientFactory)
         {
             _apiSettings = apiSettings;
+            _clientFactory = clientFactory;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var client = GetHttpClient();
-
+            var client = _clientFactory.CreateClient("YakShopAPI");
             //Get Herd List
             var path = "Yak-Shop/Order/";
             var response = await client.GetAsync(path);
@@ -37,19 +39,7 @@ namespace YakShop.Mvc.Pages.Components.Orders
             {
                 return View("Default", new List<Order>());
             }
-            
         }
 
-        private HttpClient GetHttpClient()
-        {
-
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(_apiSettings.Value.Url);
-
-
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return client;
-        }
     }
 }

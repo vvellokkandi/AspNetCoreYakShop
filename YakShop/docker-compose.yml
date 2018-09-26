@@ -1,0 +1,49 @@
+version: '3.4'
+
+services:
+  yakshop.mvc:
+    image: yakshop.mvc:latest
+    build:
+      context: ./yakshop.mvc
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+    ports:
+      - "5000:80"
+    container_name: yakshop.mvc
+    hostname: yakshop.mvc
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Container"
+    depends_on:
+      - yakshop.api
+    links:
+      - "yakshop.api"
+      - "yakshop.api:yakshop.api"
+    networks:
+        yak_network:
+            ipv4_address: 192.168.112.10
+
+  yakshop.api:
+    image: yakshop.api:latest
+    build:
+      context: ./yakshop.api
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+    ports:
+      - "8000:80"
+    container_name: yakshop.api
+    hostname: yakshop.api
+    environment:
+      - "Endpoints:Backend=http://yakshop.api"
+      - "ASPNETCORE_ENVIRONMENT=Container"
+    networks:
+        yak_network:
+            ipv4_address: 192.168.112.11
+
+networks:
+    yak_network:
+        ipam:
+            driver: default
+            config:
+                - subnet: 192.168.112.0/24

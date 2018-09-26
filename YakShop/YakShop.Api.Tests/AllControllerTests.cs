@@ -88,18 +88,18 @@ namespace YakShop.Api.Tests
             var settings = _context.Context.Settings.FirstOrDefault();
             var result = controller.Get();
 
+            var apiResult = result.Should().BeOfType<OkObjectResult>().Subject;
+            Assert.True(apiResult.StatusCode == Microsoft.AspNetCore.Http.StatusCodes.Status200OK);
+            Assert.NotNull(apiResult.Value);
+
             Assert.NotNull(result);
             if (settings != null)
             {
-                var apiResult = result.Should().BeOfType<OkObjectResult>().Subject;
-                Assert.True(apiResult.StatusCode == Microsoft.AspNetCore.Http.StatusCodes.Status200OK);
-                Assert.NotNull(apiResult.Value);
                 Assert.True(Convert.ToInt32(apiResult.Value) == settings.ElapsedDays);
             }
             else
             {
-                var apiResult = result.Should().BeOfType<StatusCodeResult>().Subject;
-                Assert.True(apiResult.StatusCode == Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent);
+                Assert.True(Convert.ToInt32(apiResult.Value) == 0);
             }
         }
 
@@ -132,8 +132,9 @@ namespace YakShop.Api.Tests
             var result = controller.Get(elapsedDays);
 
             Assert.NotNull(result);
-            var apiResult = Assert.IsType<NoContentResult>(result);
-            Assert.True(apiResult.StatusCode == Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent);
+            var apiResult = Assert.IsType<OkObjectResult>(result);
+            var herdDataList = apiResult.Value as HerdDataList;
+            Assert.True(herdDataList.Herd.Count() == 0);
         }
 
         [Fact(DisplayName = "HerdController Get(days) Should Return Herd view for the day Age incremented")]

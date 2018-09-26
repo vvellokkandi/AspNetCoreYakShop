@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +38,24 @@ namespace YakShop.Mvc
             services.Configure<ApiSettings>(Configuration.GetSection("ApiSettings"));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
+            services.AddDataProtection()
+                .SetApplicationName("YakShopMvc")
+                .UseCryptographicAlgorithms(
+                new AuthenticatedEncryptorConfiguration()
+                {
+                    EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                    ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+                });
+
             services.AddAntiforgery(o => o.HeaderName = "XSRF-TOKEN");
+
+            services.AddHttpClient("YakShopAPI", client =>
+            {
+                client.BaseAddress = new Uri(Configuration.GetSection("ApiSettings")["Url"]);
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Add("User-Agent", "YakShopUserAgent");
+            });
+
 
             services.AddSignalR();
         }

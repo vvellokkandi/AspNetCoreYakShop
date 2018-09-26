@@ -57,10 +57,7 @@ namespace YakShop.Api.Controllers
         {
             var orderData = _context.Orders.ToList();
 
-            if (orderData == null || orderData.Count() == 0)
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status204NoContent, orderData);
-            else
-                return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, orderData);
+            return StatusCode(Microsoft.AspNetCore.Http.StatusCodes.Status200OK, orderData);
         }
     }
 }

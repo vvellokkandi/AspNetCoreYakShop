@@ -15,22 +15,28 @@ namespace YakShop.Mvc.Pages.Components.StockSales
     public class StockSalesViewComponent : ViewComponent
     {
         readonly IOptions<ApiSettings> _apiSettings;
-        public StockSalesViewComponent(IOptions<ApiSettings> apiSettings)
+        readonly IHttpClientFactory _clientFactory;
+
+        public StockSalesViewComponent(IOptions<ApiSettings> apiSettings, IHttpClientFactory clientFactory)
         {
             _apiSettings = apiSettings;
+            _clientFactory = clientFactory;
         }
 
         public async Task<IViewComponentResult> InvokeAsync(bool isStock, int elapsedDays, bool fetch = true)
         {
-            var client = GetHttpClient();
+            var client = _clientFactory.CreateClient("YakShopAPI");
             var path = "Yak-Shop/Load/";
 
             if (fetch)
             {
-                var data = await client.GetStringAsync(path);
+                var response1 = await client.GetAsync(path);
 
-                if (!string.IsNullOrEmpty(data))
-                    elapsedDays = Convert.ToInt32(data);
+                if (response1.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var data = response1.Content.ReadAsStringAsync();
+                    elapsedDays = Convert.ToInt32(data.Result);
+                }
             }
             var model = new StockSalesModel();
             if (isStock)
@@ -51,18 +57,6 @@ namespace YakShop.Mvc.Pages.Components.StockSales
                 model.Data = JsonConvert.DeserializeObject<StockData>(await response.Content.ReadAsStringAsync());
             }
             return View("Default", model);
-        }
-
-        private HttpClient GetHttpClient()
-        {
-
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(_apiSettings.Value.Url);
-
-
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return client;
         }
     }
 
